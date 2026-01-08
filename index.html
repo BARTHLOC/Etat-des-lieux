@@ -46,6 +46,7 @@ h1 {
 .video {
   width: 100%;
   border-radius: 6px;
+  max-height: 400px;
 }
 </style>
 </head>
@@ -90,6 +91,7 @@ async function loadEtatDesLieux() {
 
   const record = await res.json();
   const f = record.fields;
+  console.log(f)
 
   document.getElementById("content").innerHTML = `
     <div class="section grid">
