@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>État des lieux du véhicule</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f6f6f6;
+  padding: 20px;
+}
+
+.container {
+  max-width: 800px;
+  margin: auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.section {
+  margin-bottom: 20px;
+}
+
+.label {
+  font-weight: bold;
+  color: #555;
+}
+
+.value {
+  margin-top: 5px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.video {
+  width: 100%;
+  border-radius: 6px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>État des lieux du véhicule</h1>
+
+  <div id="content">Chargement…</div>
+</div>
+
+<script>
+// ⚠️ CLÉ API VISIBLE
+const AIRTABLE_TOKEN = "patLAKWjyjF1N9EJX.87ddca578bd12fe91c0da12ab0dde58f8f52ce22e250f14bad43f2e67df7fdf2";
+const BASE_ID = "appiHWBNHkFAAFIwZ";
+const TABLE_NAME = "Mouvement";
+
+// Récupère recordId depuis l'URL
+const recordId = new URLSearchParams(window.location.search).get("recordId");
+
+if (!recordId) {
+  document.getElementById("content").innerHTML =
+    "<p>❌ Aucun identifiant fourni.</p>";
+  throw new Error("recordId manquant");
+}
+
+async function loadEtatDesLieux() {
+  const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${recordId}`;
+
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${AIRTABLE_TOKEN}`
+    }
+  });
+
+  if (!res.ok) {
+    document.getElementById("content").innerHTML =
+      "<p>❌ État des lieux introuvable.</p>";
+    return;
+  }
+
+  const record = await res.json();
+  const f = record.fields;
+
+  document.getElementById("content").innerHTML = `
+    <div class="section grid">
+      <div>
+        <div class="label">Type de véhicule</div>
+        <div class="value">${f["Type de véhicule"] || "-"}</div>
+      </div>
+      <div>
+        <div class="label">Plaque</div>
+        <div class="value">${f["Plaque"] || "-"}</div>
+      </div>
+      <div>
+        <div class="label">Couleur</div>
+        <div class="value">${f["Couleur"] || "-"}</div>
+      </div>
+      <div>
+        <div class="label">Niveau d'essence</div>
+        <div class="value">${f["Niveau d'essence"] || "-"}</div>
+      </div>
+      <div>
+        <div class="label">Propreté</div>
+        <div class="value">${f["Propreté"] || "-"}</div>
+      </div>
+    </div>
+
+    ${
+      f["Pièce jointe"]
+      ? `
+        <div class="section">
+          <div class="label">Vidéo de l'état du véhicule</div>
+          <video class="video" controls>
+            <source src="${f["Pièce jointe"][0].url}">
+            Votre navigateur ne supporte pas la vidéo.
+          </video>
+        </div>
+      `
+      : ""
+    }
+  `;
+}
+
+loadEtatDesLieux();
+</script>
+
+</body>
+</html>
