@@ -97,11 +97,11 @@ async function loadEtatDesLieux() {
     <div class="section grid">
       <div>
         <div class="label">Type de véhicule</div>
-        <div class="value">${f["Type de véhicule"] || "-"}</div>
+        <div class="value">${f["modele"][0] || "-"}</div>
       </div>
       <div>
         <div class="label">Plaque</div>
-        <div class="value">${f["Plaque"] || "-"}</div>
+        <div class="value">${f["plaque"] || "-"}</div>
       </div>
       <div>
         <div class="label">Couleur</div>
@@ -109,7 +109,7 @@ async function loadEtatDesLieux() {
       </div>
       <div>
         <div class="label">Niveau d'essence</div>
-        <div class="value">${f["Niveau d'essence"] || "-"}</div>
+        <div class="value">${f["Niveau essence"] || "-"}</div>
       </div>
       <div>
         <div class="label">Propreté</div>
