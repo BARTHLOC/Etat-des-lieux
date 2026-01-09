@@ -153,13 +153,21 @@ const TABLE_NAME = "Mouvement";
 
 const recordId = new URLSearchParams(window.location.search).get("recordId");
 
+let video = null; // 👈 variable globale
+
 if (!recordId) {
   document.getElementById("content").innerHTML =
     "<p style='text-align:center;color:red;'>Record ID manquant</p>";
   throw new Error("recordId manquant");
 }
 
-  function downloadVideo() {
+// ✅ Téléchargement réel de la vidéo
+function downloadVideo() {
+  if (!video) {
+    alert("Aucune vidéo disponible");
+    return;
+  }
+
   fetch(video.url)
     .then(res => res.blob())
     .then(blob => {
@@ -174,6 +182,8 @@ if (!recordId) {
       a.remove();
       window.URL.revokeObjectURL(url);
     })
+    .catch(() => alert("Erreur lors du téléchargement"));
+}
 
 async function loadEtatDesLieux() {
   const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${recordId}`;
@@ -190,8 +200,9 @@ async function loadEtatDesLieux() {
 
   const record = await res.json();
   const f = record.fields;
-  const video = f["Pièce jointe"] ? f["Pièce jointe"][0] : null;
-  
+
+  // 👇 affectation à la variable globale
+  video = f["Pièce jointe"] ? f["Pièce jointe"][0] : null;
 
   document.getElementById("content").innerHTML = `
     <div class="section-title">Véhicule</div>
@@ -237,6 +248,7 @@ async function loadEtatDesLieux() {
 
 loadEtatDesLieux();
 </script>
+
 
 </body>
 </html>
