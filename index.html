@@ -159,6 +159,22 @@ if (!recordId) {
   throw new Error("recordId manquant");
 }
 
+  function downloadVideo() {
+  fetch(video.url)
+    .then(res => res.blob())
+    .then(blob => {
+      const a = document.createElement("a");
+      const url = window.URL.createObjectURL(blob);
+
+      a.href = url;
+      a.download = video.filename || "etat-des-lieux.mp4";
+      document.body.appendChild(a);
+      a.click();
+
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    })
+
 async function loadEtatDesLieux() {
   const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${recordId}`;
 
@@ -175,6 +191,7 @@ async function loadEtatDesLieux() {
   const record = await res.json();
   const f = record.fields;
   const video = f["Pièce jointe"] ? f["Pièce jointe"][0] : null;
+  
 
   document.getElementById("content").innerHTML = `
     <div class="section-title">Véhicule</div>
@@ -209,9 +226,9 @@ async function loadEtatDesLieux() {
         <hr>
         <div class="section-title">Vidéo</div>
         <video class="video" controls src="${video.url}"></video>
-        <a class="download" href="${video.url}" download>
+        <button class="download" onclick="downloadVideo()">
           ⬇️ Télécharger la vidéo
-        </a>
+        </button>
       `
       : ""
     }
