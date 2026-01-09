@@ -14,7 +14,7 @@ body {
 
 /* LANG SWITCH */
 .lang-switch {
-  position: fixed;
+  position: absolute;
   top: 15px;
   right: 15px;
   font-size: 22px;
@@ -136,9 +136,10 @@ hr {
 <body>
 
 <!-- Language switch -->
-<div class="lang-switch" onclick="toggleLang()">🇫🇷 / 🇬🇧</div>
+
 
 <div class="ticket">
+  <div class="lang-switch" onclick="toggleLang()">🇫🇷 / 🇬🇧</div>
   <div class="header"></div>
 
   <h1 id="title"></h1>
