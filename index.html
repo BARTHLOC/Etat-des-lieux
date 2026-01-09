@@ -12,6 +12,17 @@ body {
   padding: 20px;
 }
 
+/* LANG SWITCH */
+.lang-switch {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  font-size: 22px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* HEADER */
 .header {
   width: 220px;
   height: 120px;
@@ -22,6 +33,7 @@ body {
   margin: 0 auto 20px auto;
 }
 
+/* TICKET */
 .ticket {
   max-width: 420px;
   margin: auto;
@@ -95,9 +107,10 @@ hr {
   background: #000;
   color: #fff;
   padding: 10px;
-  text-decoration: none;
   border-radius: 4px;
   font-size: 13px;
+  border: none;
+  cursor: pointer;
 }
 
 .contact {
@@ -122,12 +135,14 @@ hr {
 
 <body>
 
-
+<!-- Language switch -->
+<div class="lang-switch" onclick="toggleLang()">🇫🇷 / 🇬🇧</div>
 
 <div class="ticket">
   <div class="header"></div>
-  <h1>ÉTAT DES LIEUX</h1>
-  <div class="sub">Départ du véhicule</div>
+
+  <h1 id="title"></h1>
+  <div class="sub" id="subtitle"></div>
 
   <div id="content">Chargement…</div>
 
@@ -140,115 +155,134 @@ hr {
     </p>
   </div>
 
-  <div class="footer">
-    Document généré automatiquement – BARTHLOC
-  </div>
+  <div class="footer" id="footer"></div>
 </div>
 
 <script>
-// ⚠️ CLÉ API VISIBLE (lecture seule)
+// ================= CONFIG =================
 const AIRTABLE_TOKEN = "patLAKWjyjF1N9EJX.87ddca578bd12fe91c0da12ab0dde58f8f52ce22e250f14bad43f2e67df7fdf2";
 const BASE_ID = "appiHWBNHkFAAFIwZ";
 const TABLE_NAME = "Mouvement";
-
 const recordId = new URLSearchParams(window.location.search).get("recordId");
 
-let video = null; // 👈 variable globale
+// ================= LANG =================
+let lang = "fr";
+let video = null;
+let data = {};
 
-if (!recordId) {
-  document.getElementById("content").innerHTML =
-    "<p style='text-align:center;color:red;'>Record ID manquant</p>";
-  throw new Error("recordId manquant");
+const i18n = {
+  fr: {
+    title: "ÉTAT DES LIEUX",
+    subtitle: "Départ du véhicule",
+    vehicle: "Véhicule",
+    model: "Modèle",
+    plate: "Plaque",
+    state: "État",
+    fuel: "Niveau d'essence",
+    clean: "Propreté",
+    video: "Vidéo",
+    download: "⬇️ Télécharger la vidéo",
+    footer: "Document généré automatiquement – BARTHLOC"
+  },
+  en: {
+    title: "VEHICLE INSPECTION",
+    subtitle: "Vehicle departure",
+    vehicle: "Vehicle",
+    model: "Model",
+    plate: "License plate",
+    state: "Condition",
+    fuel: "Fuel level",
+    clean: "Cleanliness",
+    video: "Video",
+    download: "⬇️ Download video",
+    footer: "Automatically generated document – BARTHLOC"
+  }
+};
+
+function toggleLang() {
+  lang = lang === "fr" ? "en" : "fr";
+  render();
 }
 
-// ✅ Téléchargement réel de la vidéo
+// ================= DOWNLOAD =================
 function downloadVideo() {
-  if (!video) {
-    alert("Aucune vidéo disponible");
-    return;
-  }
+  if (!video) return alert("No video");
 
   fetch(video.url)
-    .then(res => res.blob())
-    .then(blob => {
+    .then(r => r.blob())
+    .then(b => {
       const a = document.createElement("a");
-      const url = window.URL.createObjectURL(blob);
-
-      a.href = url;
-      a.download = video.filename || "etat-des-lieux.mp4";
+      const u = URL.createObjectURL(b);
+      a.href = u;
+      a.download = video.filename || "inspection.mp4";
       document.body.appendChild(a);
       a.click();
-
       a.remove();
-      window.URL.revokeObjectURL(url);
-    })
-    .catch(() => alert("Erreur lors du téléchargement"));
+      URL.revokeObjectURL(u);
+    });
 }
 
-async function loadEtatDesLieux() {
-  const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${recordId}`;
+// ================= LOAD =================
+async function load() {
+  if (!recordId) return;
 
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}` }
-  });
-
-  if (!res.ok) {
-    document.getElementById("content").innerHTML =
-      "<p style='text-align:center;color:red;'>Document introuvable</p>";
-    return;
-  }
+  const res = await fetch(
+    `https://api.airtable.com/v0/${BASE_ID}/${TABLE_NAME}/${recordId}`,
+    { headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}` } }
+  );
 
   const record = await res.json();
-  const f = record.fields;
+  data = record.fields;
+  video = data["Pièce jointe"]?.[0] || null;
+  render();
+}
 
-  // 👇 affectation à la variable globale
-  video = f["Pièce jointe"] ? f["Pièce jointe"][0] : null;
+function render() {
+  const t = i18n[lang];
+  document.getElementById("title").innerText = t.title;
+  document.getElementById("subtitle").innerText = t.subtitle;
+  document.getElementById("footer").innerText = t.footer;
 
   document.getElementById("content").innerHTML = `
-    <div class="section-title">Véhicule</div>
+    <div class="section-title">${t.vehicle}</div>
 
     <div class="row">
-      <div class="label">Modèle</div>
-      <div class="value">${f["modele"] ? f["modele"][0] : "-"}</div>
+      <div class="label">${t.model}</div>
+      <div class="value">${data["modele"]?.[0] || "-"}</div>
     </div>
 
     <div class="row">
-      <div class="label">Plaque</div>
-      <div class="value">${f["plaque"] || "-"}</div>
+      <div class="label">${t.plate}</div>
+      <div class="value">${data["plaque"] || "-"}</div>
     </div>
 
     <hr>
 
-    <div class="section-title">État</div>
+    <div class="section-title">${t.state}</div>
 
     <div class="row">
-      <div class="label">Niveau d'essence</div>
-      <div class="value">${f["Niveau essence"] || "-"}/8</div>
+      <div class="label">${t.fuel}</div>
+      <div class="value">${data["Niveau essence"] || "-"}/8</div>
     </div>
 
     <div class="row">
-      <div class="label">Propreté</div>
-      <div class="value">${f["Propreté"] || "-"}</div>
+      <div class="label">${t.clean}</div>
+      <div class="value">${data["Propreté"] || "-"}</div>
     </div>
 
     ${
-      video
-      ? `
+      video ? `
         <hr>
-        <div class="section-title">Vidéo</div>
+        <div class="section-title">${t.video}</div>
         <video class="video" controls src="${video.url}"></video>
-        <button class="download" onclick="downloadVideo()">
-          ⬇️ Télécharger la vidéo
-        </button>
-      `
-      : ""
+        <button class="download" onclick="downloadVideo()">${t.download}</button>
+      ` : ""
     }
   `;
 }
 
-loadEtatDesLieux();
+load();
 </script>
-
 
 </body>
 </html>
