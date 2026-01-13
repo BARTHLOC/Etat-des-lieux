@@ -300,6 +300,7 @@ async function load() {
   const attachments = data["Pièce jointe"] || [];
   video = attachments.find(f => f.type?.startsWith("video")) || null;
   photos = attachments.filter(f => f.type?.startsWith("image"));
+  console.log(photos);
 
   render();
 }
@@ -354,7 +355,7 @@ function render() {
         ${photos.length ? `
           <div class="gallery">
             ${photos.map(p => `
-              <img src="${p.thumbnails?.small?.url || p.url}"
+              <img src="${p.thumbnails?.medium?.url || p.url}"
                    onclick="openLightbox('${p.url}')">
             `).join("")}
           </div>
