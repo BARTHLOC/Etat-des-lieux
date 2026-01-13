@@ -242,6 +242,8 @@ async function load() {
 
   const record = await res.json();
   data = record.fields;
+ const readableDate = new Date(data["date"]).toLocaleString("fr-FR");
+  
   video = data["Pièce jointe"]?.[0] || null;
   render();
 }
@@ -291,7 +293,7 @@ function render() {
     }
   `;
 }
-
+document.getElementById("date").textContent = readableDate;
 load();
 </script>
 
