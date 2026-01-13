@@ -105,6 +105,45 @@ hr {
   margin-top: 10px;
 }
 
+  /* GALLERY */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.gallery img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+}
+
+/* LIGHTBOX */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.lightbox img {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 6px;
+}
+
+.lightbox.active {
+  display: flex;
+}
+
+
 .download {
   display: block;
   margin-top: 10px;
@@ -137,7 +176,9 @@ hr {
 }
 </style>
 </head>
-
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img">
+</div>
 <body>
 
 <div class="ticket">
@@ -245,7 +286,15 @@ function downloadVideo() {
       URL.revokeObjectURL(u);
     });
 }
+function openLightbox(src) {
+  const lb = document.getElementById("lightbox");
+  document.getElementById("lightbox-img").src = src;
+  lb.classList.add("active");
+}
 
+function closeLightbox() {
+  document.getElementById("lightbox").classList.remove("active");
+}
 // ================= LOAD =================
 async function load() {
   if (!recordId) return;
@@ -257,7 +306,10 @@ async function load() {
 
   const record = await res.json();
   data = record.fields;
-  video = data["Pièce jointe"]?.[0] || null;
+  let photos = [];
+ const attachments = data["Pièce jointe"] || [];
+video = attachments.find(f => f.type?.startsWith("video")) || null;
+photos = attachments.filter(f => f.type?.startsWith("image"));
 
   render();
 }
@@ -299,14 +351,7 @@ function render() {
       <div class="value">${data["Propreté"] || "-"}</div>
     </div>
 
-    ${
-      video ? `
-        <hr>
-        <div class="section-title">${t.video}</div>
-        <video class="video" controls src="${video.url}"></video>
-        <button class="download" onclick="downloadVideo()">${t.download}</button>
-      ` : ""
-    }
+   }
   `;
 }
 
