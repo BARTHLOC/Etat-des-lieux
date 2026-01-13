@@ -14,7 +14,7 @@ body {
   background-attachment: fixed;
   background-repeat: no-repeat;
   background-size: cover;
-   background-image : url("https://images.unsplash.com/photo-1723842161736-647233a1a8a1?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
+  background-image: url("https://images.unsplash.com/photo-1723842161736-647233a1a8a1?q=80&w=774&auto=format&fit=crop");
 }
 
 /* LANG SWITCH */
@@ -89,7 +89,7 @@ hr {
   margin-bottom: 8px;
 }
 
-.label { font-size: 12px; color:  #52bf94; }
+.label { font-size: 12px; color: #52bf94; }
 .value { font-size: 14px; font-weight: bold; text-align: right; }
 
 .section-title {
@@ -140,11 +140,8 @@ hr {
 
 <body>
 
-<!-- Language switch -->
-
-
 <div class="ticket">
-  <div class="lang-switch" onclick="toggleLang()">🇫🇷  🇬🇧</div>
+  <div class="lang-switch" onclick="toggleLang()">🇫🇷 🇬🇧</div>
   <div class="header"></div>
 
   <h1 id="title"></h1>
@@ -159,7 +156,6 @@ hr {
       <a href="mailto:barthloc@wanadoo.fr">✉️ barthloc@wanadoo.fr</a><br>
       <a href="https://barthloc.com" target="_blank">🌐 barthloc.com</a>
     </p>
-    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3796.7379669938045!2d-62.84926299999999!3d17.897702!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8c0e0ab56601cd7b%3A0x43eaeaf2ae792bb7!2sBARTHLOC!5e0!3m2!1sfr!2sfr!4v1768224377264!5m2!1sfr!2sfr" width="90%" height="250" style="border:1px solid #52bf94;border-radius:3px -webkit-border-radius: 15px; -moz-border-radius: 15px;border-radius: 15px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
   </div>
 
   <div class="footer" id="footer"></div>
@@ -195,8 +191,8 @@ const i18n = {
   en: {
     title: "VEHICLE INSPECTION",
     subtitle: "Vehicle departure",
-    vehicle: "Vehicle",
     date: "Date",
+    vehicle: "Vehicle",
     model: "Model",
     plate: "License plate",
     state: "Condition",
@@ -213,9 +209,27 @@ function toggleLang() {
   render();
 }
 
+// ================= DATE FORMAT =================
+function formatDate(dateString) {
+  if (!dateString) return "-";
+
+  const options = {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  };
+
+  return new Date(dateString).toLocaleString(
+    lang === "fr" ? "fr-FR" : "en-GB",
+    options
+  );
+}
+
 // ================= DOWNLOAD =================
 function downloadVideo() {
-  if (!video) return alert("No video");
+  if (!video) return;
 
   fetch(video.url)
     .then(r => r.blob())
@@ -242,21 +256,22 @@ async function load() {
 
   const record = await res.json();
   data = record.fields;
- const readableDate = new Date(data["date"]).toLocaleString("fr-FR");
-  
   video = data["Pièce jointe"]?.[0] || null;
+
   render();
 }
 
+// ================= RENDER =================
 function render() {
   const t = i18n[lang];
   document.getElementById("title").innerText = t.title;
   document.getElementById("subtitle").innerText = t.subtitle;
   document.getElementById("footer").innerText = t.footer;
 
-  document.getElementById("content").innerHTML =` 
+  document.getElementById("content").innerHTML = `
     <div class="section-title">${t.date}</div>
-     <div class="value">${data["date"] || "-"}/8</div>
+    <div class="value">${formatDate(data["date"])}</div>
+
     <div class="section-title">${t.vehicle}</div>
 
     <div class="row">
@@ -293,8 +308,7 @@ function render() {
     }
   `;
 }
-document.getElementById("date").textContent = readableDate;
-  console.log('readeabledate :' + readableDate )
+
 load();
 </script>
 
