@@ -181,6 +181,7 @@ const i18n = {
   fr: {
     title: "ÉTAT DES LIEUX",
     subtitle: "Départ du véhicule",
+    date: "Date",
     vehicle: "Véhicule",
     model: "Modèle",
     plate: "Plaque",
@@ -195,6 +196,7 @@ const i18n = {
     title: "VEHICLE INSPECTION",
     subtitle: "Vehicle departure",
     vehicle: "Vehicle",
+    date: "Date",
     model: "Model",
     plate: "License plate",
     state: "Condition",
@@ -250,7 +252,9 @@ function render() {
   document.getElementById("subtitle").innerText = t.subtitle;
   document.getElementById("footer").innerText = t.footer;
 
-  document.getElementById("content").innerHTML = `
+  document.getElementById("content").innerHTML =` 
+    <div class="section-title">${t.date}</div>
+     <div class="value">${data["date"] || "-"}/8</div>
     <div class="section-title">${t.vehicle}</div>
 
     <div class="row">
