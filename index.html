@@ -105,7 +105,7 @@ hr {
   margin-top: 10px;
 }
 
-  /* GALLERY */
+/* GALLERY */
 .gallery {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -143,7 +143,6 @@ hr {
   display: flex;
 }
 
-
 .download {
   display: block;
   margin-top: 10px;
@@ -176,10 +175,13 @@ hr {
 }
 </style>
 </head>
+
+<body>
+
+<!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <img id="lightbox-img">
 </div>
-<body>
 
 <div class="ticket">
   <div class="lang-switch" onclick="toggleLang()">🇫🇷 🇬🇧</div>
@@ -197,7 +199,6 @@ hr {
       <a href="mailto:barthloc@wanadoo.fr">✉️ barthloc@wanadoo.fr</a><br>
       <a href="https://barthloc.com" target="_blank">🌐 barthloc.com</a>
     </p>
-     <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3796.7379669938045!2d-62.84926299999999!3d17.897702!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8c0e0ab56601cd7b%3A0x43eaeaf2ae792bb7!2sBARTHLOC!5e0!3m2!1sfr!2sfr!4v1768224377264!5m2!1sfr!2sfr" width="90%" height="250" style="border:1px solid #52bf94;border-radius:3px -webkit-border-radius: 15px; -moz-border-radius: 15px;border-radius: 15px;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
   </div>
 
   <div class="footer" id="footer"></div>
@@ -210,11 +211,13 @@ const BASE_ID = "appiHWBNHkFAAFIwZ";
 const TABLE_NAME = "Mouvement";
 const recordId = new URLSearchParams(window.location.search).get("recordId");
 
-// ================= LANG =================
+// ================= GLOBAL =================
 let lang = "fr";
 let video = null;
+let photos = [];
 let data = {};
 
+// ================= I18N =================
 const i18n = {
   fr: {
     title: "ÉTAT DES LIEUX",
@@ -251,50 +254,37 @@ function toggleLang() {
   render();
 }
 
-// ================= DATE FORMAT =================
+// ================= DATE =================
 function formatDate(dateString) {
   if (!dateString) return "-";
-
-  const options = {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  };
-
   return new Date(dateString).toLocaleString(
     lang === "fr" ? "fr-FR" : "en-GB",
-    options
+    { day:"2-digit", month:"long", year:"numeric", hour:"2-digit", minute:"2-digit" }
   );
 }
 
-// ================= DOWNLOAD =================
+// ================= LIGHTBOX =================
+function openLightbox(src) {
+  document.getElementById("lightbox-img").src = src;
+  document.getElementById("lightbox").classList.add("active");
+}
+function closeLightbox() {
+  document.getElementById("lightbox").classList.remove("active");
+}
+
+// ================= VIDEO DOWNLOAD =================
 function downloadVideo() {
   if (!video) return;
-
   fetch(video.url)
     .then(r => r.blob())
     .then(b => {
       const a = document.createElement("a");
-      const u = URL.createObjectURL(b);
-      a.href = u;
+      a.href = URL.createObjectURL(b);
       a.download = video.filename || "inspection.mp4";
-      document.body.appendChild(a);
       a.click();
-      a.remove();
-      URL.revokeObjectURL(u);
     });
 }
-function openLightbox(src) {
-  const lb = document.getElementById("lightbox");
-  document.getElementById("lightbox-img").src = src;
-  lb.classList.add("active");
-}
 
-function closeLightbox() {
-  document.getElementById("lightbox").classList.remove("active");
-}
 // ================= LOAD =================
 async function load() {
   if (!recordId) return;
@@ -306,10 +296,10 @@ async function load() {
 
   const record = await res.json();
   data = record.fields;
-  let photos = [];
- const attachments = data["Pièce jointe"] || [];
-video = attachments.find(f => f.type?.startsWith("video")) || null;
-photos = attachments.filter(f => f.type?.startsWith("image"));
+
+  const attachments = data["Pièce jointe"] || [];
+  video = attachments.find(f => f.type?.startsWith("video")) || null;
+  photos = attachments.filter(f => f.type?.startsWith("image"));
 
   render();
 }
@@ -351,7 +341,26 @@ function render() {
       <div class="value">${data["Propreté"] || "-"}</div>
     </div>
 
-   }
+    ${
+      video || photos.length ? `
+        <hr>
+        <div class="section-title">${t.video}</div>
+
+        ${video ? `
+          <video class="video" controls src="${video.url}"></video>
+          <button class="download" onclick="downloadVideo()">${t.download}</button>
+        ` : ""}
+
+        ${photos.length ? `
+          <div class="gallery">
+            ${photos.map(p => `
+              <img src="${p.thumbnails?.small?.url || p.url}"
+                   onclick="openLightbox('${p.url}')">
+            `).join("")}
+          </div>
+        ` : ""}
+      ` : ""
+    }
   `;
 }
 
